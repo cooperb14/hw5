@@ -7,11 +7,6 @@ Percolation Module that exhibits functions defined by 1006 Hw5_2
 import numpy as np
 import matplotlib.pyplot as plt
 
-# test imports
-import random
-import Lindsay as linz
-import time
-
 
 def read_grid(infile_name):
     """Create a site vacancy matrix from a text file.
@@ -96,7 +91,7 @@ def flow_from(sites,full,i,j):
 
 def percolates(flow_matrix):
     """Returns a boolean if the flow_matrix exhibits percolation
-    
+
     flow_matrix is a numpy array representing a flow matrix
     """
     
@@ -135,23 +130,25 @@ def make_plot(n,trials):
     percolation by running a Monte Carlo simulation using the variable
     trials number of trials for each point. """
     
+    #initializes local variables
     x = []
     y = []
     last_y = 0
     last_x = 0
     p = 0
+    
+    #sets step size for site vacancy p (x-axis)
     step = .01
+    
     while p <= 1:
-        total = 0
-        for counter in range(trials):
-            a = make_sites(n,p)
-            b = undirected_flow(a)
-            c = percolates(b)
-            total += int(c)
-        d = total/trials
+        
+        #calculates percolation p (y-axis)
+        d = percolation_prob(n, p, trials)
         j = []
         i = []
-        adaptive_plot(d, p, j, i, last_y, last_x)
+        
+        #calls adaptive plotting to optimize point plotting
+        adaptive_plot(d, p, j, i, last_y, last_x, n, trials)
         j.sort()
         i.sort()
         y.extend(j)
@@ -161,6 +158,8 @@ def make_plot(n,trials):
         last_y = d
         last_x = p
         p += step
+        
+    #creates plot from the x and y lists, labels plot
     plt.plot(x,y)
     plt.title('Graph of Percolation p vs. Site Vacancy p')
     plt.ylabel('Percolation prob')
@@ -168,28 +167,38 @@ def make_plot(n,trials):
     plt.show()
 
 
-def adaptive_plot(y, x, j, i, last_y, last_x):
-    threshold = .075
-    if abs(y - last_y) > threshold:
-        y_middle = abs(y - last_y)/2
-        x_middle = abs(x - last_x)/2
-        j.append(y_middle)
-        i.append(x_middle)
-        adaptive_plot(y_middle, x_middle, j, i, last_y, last_x)
-        adaptive_plot(y, x, j, i, y_middle, x_middle)
-    
+def percolation_prob(n, p, trials):
+   '''
+   Helper function for make_plot that calculates percolation p
+   given a specific ndim, site vacancy p, and trials #
+   ''' 
+   
+   total = 0
+   for counter in range(trials):
+       a = make_sites(n,p)
+       b = undirected_flow(a)
+       c = percolates(b)
+       total += int(c)
+   return total/trials
 
 
-def main():
-#    x = np.random.binomial(1, .35 ,(5,5))
-#   y = np.array([[0,0, 1, 0, 0],[1, 0, 1, 0, 1],[0, 0, 1, 0, 0],[1, 1, 1, 0, 0],[1, 0, 0, 0, 1]])
-#   plt.matshow(y)
-#   plt.show()
-#   show_perc(y)
-#    linz.make_plot(20,200)
-#    plt.show()
-
-    x = time.time()
-    make_plot(10,5000)
-    print((time.time() - x)/60)
-main()
+def adaptive_plot(y, x, j, i, last_y, last_x, n, trials):
+   '''
+   Helper function for make_plot that calculates percolation p
+   given a specific ndim, site vacancy p, and trials #
+   ''' 
+   
+   #sets threshold for allowable difference in y-axis points
+   threshold = .075
+   
+   if abs(y - last_y) > threshold:
+       x_middle = abs(x - last_x)/2
+       y_middle = percolation_prob(n, x_middle, trials)
+       j.append(y_middle)
+       i.append(x_middle)
+       
+       #checks threshold difference right of the median
+       adaptive_plot(y_middle, x_middle, j, i, last_y, last_x, n, trials)
+       
+       #checks threshold difference left of the median
+       adaptive_plot(y, x, j, i, y_middle, x_middle, n, trials)
