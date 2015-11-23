@@ -73,7 +73,7 @@ def vertical_flow(sites):
     x[:size] = a[:size]
     for i in range(size, len(x)):
         x[i] = a[i]
-        if not x[i - 3]:
+        if not x[i - size]:
             x[i] = 0
     x = np.array(x)
     x.shape = (size,size)
